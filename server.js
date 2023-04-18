@@ -71,8 +71,9 @@ app.post('/register', async (req, res) => {
                     const accessToken = data;
                     res.cookie('accessToken', accessToken, {
                         maxAge: 60 * 60 * 1000,
-                        secure: false,
-                        httpOnly: true
+                        secure: true,
+                        httpOnly: true,
+                        sameSite: 'none'
                     }).json({
                         username: result.username,
                         userId: result._id
@@ -121,8 +122,9 @@ app.post('/login', async (req, res) => {
                     const accessToken = data;
                     res.cookie('accessToken', accessToken, {
                         maxAge: 1000 * 60 * 60,
-                        secure: false,
-                        httpOnly: true
+                        secure: true,
+                        httpOnly: true,
+                        sameSite: 'none'
                     }).json({
                         username: acountCurrent.username,
                         userId: acountCurrent._id,
