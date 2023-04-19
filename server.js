@@ -59,9 +59,10 @@ app.post('/register', async (req, res) => {
                 username,
                 password: hashedPassword
             });
+            const role = 'user';
 
             jwt.sign(
-                { id: result._id, username: result.username },
+                { id: result._id, username: result.username, role },
                 CECRET_KEY,
                 { algorithm: 'HS256' },
                 (err, data) => {
@@ -104,13 +105,14 @@ app.post('/login', async (req, res) => {
         return res.status(401).send('username or password is empty');
     try {
         const acountCurrent = await account.findOne({ username }).lean();
+        const role = acountCurrent.role ?? 'user';
         const check = !!acountCurrent
             ? bcrypt.compareSync(password, acountCurrent.password)
             : false;
 
         if (check) {
             jwt.sign(
-                { id: acountCurrent._id, username },
+                { id: acountCurrent._id, username, role },
                 CECRET_KEY,
                 {
                     algorithm: 'HS256'
@@ -128,6 +130,7 @@ app.post('/login', async (req, res) => {
                     }).json({
                         username: acountCurrent.username,
                         userId: acountCurrent._id,
+                        role,
                         token: {
                             accessToken,
                             refreshToken: null
@@ -294,6 +297,22 @@ app.put('/post/:id', async (req, res) => {
                     });
             }
         );
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+});
+
+app.delete('/delete/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        let result = await post.findByIdAndDelete(id);
+
+        if (result) {
+            return res.status(200).send(result);
+        } else {
+            return res.status(403).send('not permisson');
+        }
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
