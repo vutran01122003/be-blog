@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
+const cloudnary = require('./utils/cloudinary');
 const aqp = require('api-query-params');
 
 const app = express();
@@ -153,20 +154,11 @@ app.post('/logout', (req, res) => {
 
 app.post('/post', async (req, res) => {
     try {
-        const sampleFile = req.files.file;
         const accessToken = req.cookies.accessToken;
-        const { title, summary, content } = req.body;
-
-        const parts = sampleFile.name.split('.');
-        const nameFile = parts[0];
-        const typeFile = parts[parts.length - 1];
-        const newPath = nameFile + Date.now() + '.' + typeFile;
-
-        const uploadPath = path.join(__dirname, '/public/images/', newPath);
-
-        await sampleFile.mv(uploadPath, function (err) {
-            if (err) return res.status(500).send(err);
-        });
+        const { title, summary, content, file } = req.body;
+        const resultUpload = await cloudnary.uploader.upload(file, {
+            folder: "images"
+        })
 
         jwt.verify(
             accessToken,
@@ -179,7 +171,7 @@ app.post('/post', async (req, res) => {
                     title,
                     summary,
                     content,
-                    cover: newPath,
+                    cover: resultUpload.secure_url,
                     author: data.id
                 })
                     .then((result) => {
@@ -256,20 +248,14 @@ app.put('/post/:id', async (req, res) => {
     try {
         const id = req.params.id;
         const accessToken = req.cookies.accessToken;
-        const { title, summary, content, cover } = req.body;
+        const { title, summary, content, cover, file } = req.body;
         let newPath = '';
 
-        if (req.files) {
-            const sampleFile = req.files.file;
-            const parts = sampleFile.name.split('.');
-            const nameFile = parts[0];
-            const typeFile = parts[parts.length - 1];
-            newPath = nameFile + Date.now() + '.' + typeFile;
-            const uploadPath = path.join(__dirname, '/public/images/', newPath);
-
-            await sampleFile.mv(uploadPath, function (err) {
-                if (err) return res.status(500).send(err);
-            });
+        if (file) {
+            const resultUpload = await cloudnary.uploader.upload(file, {
+                folder: "images"
+            })
+            newPath = resultUpload.secure_url;
         } else {
             newPath = cover;
         }
