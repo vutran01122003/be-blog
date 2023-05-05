@@ -72,7 +72,6 @@ app.post('/register', async (req, res) => {
 
                     const accessToken = data;
                     res.cookie('accessToken', accessToken, {
-                        maxAge: 60 * 60 * 1000,
                         secure: true,
                         httpOnly: true,
                         sameSite: 'none'
@@ -124,7 +123,6 @@ app.post('/login', async (req, res) => {
 
                     const accessToken = data;
                     res.cookie('accessToken', accessToken, {
-                        maxAge: 1000 * 60 * 60,
                         secure: true,
                         httpOnly: true,
                         sameSite: 'none'
